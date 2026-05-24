@@ -8,17 +8,17 @@ import App from './app/App.jsx';
 const root = createRoot(document.getElementById('root'));
 
 root.render(
-	<StrictMode>
-		<ReactKeycloakProvider
-			authClient={keycloak}
-			initOptions={{
-				onLoad: 'check-sso',
-				pkceMethod: 'S256',
-			}}
-		>
-			<BrowserRouter>
-				<App />
-			</BrowserRouter>
-		</ReactKeycloakProvider>
-	</StrictMode>,
+    <StrictMode>
+        <ReactKeycloakProvider
+            authClient={keycloak}
+            initOptions={{
+                onLoad: 'check-sso',
+                pkceMethod: 'S256',
+            }}
+        >
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
+        </ReactKeycloakProvider>
+    </StrictMode>,
 )
