@@ -1,9 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import { ReactKeycloakProvider } from '@react-keycloak/web';
 import keycloak from './app/keycloak.js';
 import App from './app/App.jsx';
+import './index.css';
 
 const root = createRoot(document.getElementById('root'));
 
@@ -16,9 +16,7 @@ root.render(
                 pkceMethod: 'S256',
             }}
         >
-            <BrowserRouter>
-                <App />
-            </BrowserRouter>
+            <App />
         </ReactKeycloakProvider>
     </StrictMode>,
 )
