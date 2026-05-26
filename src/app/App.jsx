@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react';
 import keycloak from './keycloak.js';
 import api from '../shared/api/axiosInstance.js';
 
-const initialProfileState = {
-    status: 'idle',
-    message: '',
-};
 
 const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL;
 const keycloakRealm = import.meta.env.VITE_KEYCLOAK_REALM;
@@ -16,10 +12,6 @@ let keycloakInitPromise = null;
 function App() {
     const [initialized, setInitialized] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(Boolean(keycloak.authenticated));
-    const [profileState, setProfileState] = useState(initialProfileState);
-    const displayName = keycloak?.tokenParsed?.preferred_username
-        ?? keycloak?.tokenParsed?.email
-        ?? 'user';
 
     useEffect(() => {
         let cancelled = false;
@@ -66,42 +58,18 @@ function App() {
 
     useEffect(() => {
         if (!initialized || !isAuthenticated) {
-            setProfileState(initialProfileState);
             return undefined;
         }
 
-        let cancelled = false;
-
         const syncProfile = async () => {
-            setProfileState({
-                status: 'syncing',
-                message: 'Syncing user profile with glow-user-service...',
-            });
-
             try {
                 await api.post('/sync-profile', {});
-
-                if (!cancelled) {
-                    setProfileState({
-                        status: 'ready',
-                        message: 'Signed in and user profile is ready.',
-                    });
-                }
             } catch {
-                if (!cancelled) {
-                    setProfileState({
-                        status: 'error',
-                        message: 'Signed in to Keycloak, but the user profile sync is not available yet.',
-                    });
-                }
+                // ignore — backend may not be available in all dev setups
             }
         };
 
         syncProfile();
-
-        return () => {
-            cancelled = true;
-        };
     }, [initialized, isAuthenticated]);
 
     const handleSignIn = () => {
