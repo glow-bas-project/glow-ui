@@ -5,10 +5,17 @@ This is a React + Vite front-end template for Glow UI. It is based on the offici
 ## Glow UI Setup
 
 1. Install dependencies with `npm install`.
-2. Create your local environment file by copying `.env.example` to `.env` and filling in the values for Vite and Keycloak.
-3. Start the dev server with `npm run dev`.
-4. Build for production with `npm run build`.
-5. Run linting with `npm run lint`.
+2. Create your local environment file by copying `.env.example` to `.env` and fill up the values.
+   1. `VITE_API_BASE_URL` should point to the restaurant service backend, e.g. `http://localhost:8085` for local development or the Traefik route if using the compose stack.
+   2. The Keycloak variables are only needed if you want to test authentication locally with a local Keycloak instance. If you are using the compose stack, the UI will be able to authenticate with the Keycloak service in the stack without any additional configuration.
+3. Start the restaurant backend locally with `./gradlew quarkusDev` in `glow-restaurant-service`.
+4. Start the UI dev server with `npm run dev` and open `http://localhost:5173/ui` in your browser.
+
+### Local restaurant data
+
+The restaurant service seeds one dev restaurant automatically at startup, so once the backend is running on port `8085`, the UI should render a live restaurant list instead of the fetch error.
+
+If you use the compose stack instead of a local backend, point `VITE_API_BASE_URL` at the Traefik route for the service rather than `localhost:8085`.
 
 ## React Plugins
 
