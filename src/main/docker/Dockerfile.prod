@@ -1,0 +1,52 @@
+####
+# This Dockerfile is used in order to build a container that runs the glow-ui application in production mode.
+#
+# Before building the container image run:
+#
+# npm ci
+# npm run build
+#
+# Then, build the image with:
+#
+# docker build -f src/main/docker/Dockerfile.prod -t glow-ui .
+#
+# Then run the container using:
+#
+# docker run -i --rm -p 80:80 glow-ui
+#
+# This image uses nginx to serve the static Vite build under /ui.
+#
+####
+FROM node:22-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+FROM nginx:1.29-alpine
+
+RUN cat > /etc/nginx/conf.d/default.conf <<'EOF'
+server {
+	listen 80;
+	server_name _;
+
+	location = /ui {
+		return 301 /ui/;
+	}
+
+	location /ui/ {
+		alias /usr/share/nginx/html/ui/;
+		try_files $uri $uri/ /ui/index.html;
+	}
+}
+EOF
+
+COPY --from=build /app/dist/ /usr/share/nginx/html/ui/
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
