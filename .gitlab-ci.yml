@@ -37,7 +37,7 @@ push_image:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
-    - docker build -f src/main/docker/Dockerfile.prod -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker build -f src/main/docker/Dockerfile.prod --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" --build-arg VITE_KEYCLOAK_URL="$VITE_KEYCLOAK_URL" --build-arg VITE_KEYCLOAK_REALM="$VITE_KEYCLOAK_REALM" --build-arg VITE_KEYCLOAK_CLIENT_ID="$VITE_KEYCLOAK_CLIENT_ID" -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" -t "$CI_REGISTRY_IMAGE:latest" .
     - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
     - docker push "$CI_REGISTRY_IMAGE:latest"
   rules:
