@@ -89,8 +89,6 @@ function RestaurantCard({ restaurant, index }) {
     );
 }
 
-const adminConsoleRedirectUri = 'http://auth.localhost/admin';
-
 let keycloakInitPromise = null;
 
 function App() {
@@ -149,7 +147,13 @@ function App() {
 
         const syncProfile = async () => {
             try {
-                await api.post('/sync-profile', {});
+                const token = keycloak.tokenParsed ?? {};
+                const name = [token.given_name, token.family_name]
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim() || token.preferred_username || null;
+
+                await api.post('/sync-profile', { name });
             } catch {
                 // ignore — backend may not be available in all dev setups
             }
@@ -159,11 +163,13 @@ function App() {
     }, [initialized, isAuthenticated]);
 
     const handleSignIn = () => {
-        window.location.assign(adminConsoleRedirectUri);
+        keycloak.login({
+            redirectUri: `${import.meta.env.VITE_APP_URL}/`,
+        });
     };
 
     const handleSignOut = () => {
-        keycloak.logout({ redirectUri: window.location.origin });
+        keycloak.logout({ redirectUri: `${import.meta.env.VITE_APP_URL}/` });
     };
 
     const restaurantCountLabel = useMemo(() => {
