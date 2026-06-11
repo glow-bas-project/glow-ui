@@ -158,9 +158,10 @@ function App() {
                     .trim() || token.preferred_username || null;
 
                 await userApi.post('/sync-profile', { name });
-            } catch {
-                } finally {
-                    setIsProfileSynced(true);
+            } catch (error) {
+                console.error('Failed to sync profile:', error);
+            } finally {
+                setIsProfileSynced(true);
             }
         };
 
@@ -176,8 +177,8 @@ function App() {
             try {
                 const response = await cartApi.get('/carts/me');
                 setCartItemCount(response.data.items?.length ?? 0);
-            } catch {
-                // ignore
+            } catch (error) {
+                console.error('Failed to fetch cart:', error);
             }
         };
 
