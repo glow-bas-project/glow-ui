@@ -9,7 +9,7 @@ const root = createRoot(document.getElementById('root'));
 
 root.render(
     <StrictMode>
-        <BrowserRouter basename="/ui">
+        <BrowserRouter>
             <Routes>
                 <Route path="/" element={<App />} />
                 <Route path="/cart" element={<CartPage />} />
