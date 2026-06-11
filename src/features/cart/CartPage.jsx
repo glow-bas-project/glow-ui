@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
-import api from '../../shared/api/axiosInstance.js';
+import { cartApi } from '../../shared/api/apiClients.js';
 
 function CartPage() {
     const [cart, setCart] = useState(null);
@@ -15,7 +15,7 @@ function CartPage() {
             return;
         }
 
-        api.get('/cart/carts/me')
+        cartApi.get('/cart/carts/me')
             .then(res => {
                 setCart(res.data);
                 setLoading(false);
@@ -28,7 +28,7 @@ function CartPage() {
 
     const handleClear = async () => {
         try {
-            await api.delete('/cart/carts/me');
+            await cartApi.delete('/cart/carts/me');
             setCart(prev => ({ ...prev, items: [], totalPrice: 0 }));
         } catch {
             setError('Could not clear cart.');

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
-import api from '../shared/api/axiosInstance.js';
+import { cartApi, userApi } from '../shared/api/apiClients.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
@@ -156,7 +156,7 @@ function App() {
                     .join(' ')
                     .trim() || token.preferred_username || null;
 
-                await api.post('/sync-profile', { name });
+                await userApi.post('/sync-profile', { name });
             } catch {
                 // ignore — backend may not be available in all dev setups
             }
@@ -172,7 +172,7 @@ function App() {
 
         const fetchCart = async () => {
             try {
-                const response = await api.get('/cart/carts/me');
+                const response = await cartApi.get('/cart/carts/me');
                 setCartItemCount(response.data.items?.length ?? 0);
             } catch {
                 // ignore
