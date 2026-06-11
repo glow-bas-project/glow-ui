@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
 import api from '../shared/api/axiosInstance.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 
 const restaurantImages = [
@@ -97,6 +98,8 @@ function App() {
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
 
+    const navigate = useNavigate();
+
     useEffect(() => {
         let cancelled = false;
 
@@ -162,6 +165,23 @@ function App() {
         syncProfile();
     }, [initialized, isAuthenticated]);
 
+    const [cartItemCount, setCartItemCount] = useState(0);
+
+    useEffect(() => {
+        if (!initialized || !isAuthenticated) return;
+
+        const fetchCart = async () => {
+            try {
+                const response = await api.get('/cart/carts/me');
+                setCartItemCount(response.data.items?.length ?? 0);
+            } catch {
+                // ignore
+            }
+        };
+
+        fetchCart();
+    }, [initialized, isAuthenticated]);
+
     const handleSignIn = () => {
         keycloak.login({
             redirectUri: `${import.meta.env.VITE_APP_URL}/`,
@@ -208,6 +228,15 @@ function App() {
                     </div>
 
                     <div className="app-header__actions">
+                        {isAuthenticated && (
+                            <button
+                                type="button"
+                                onClick={() => navigate('/cart')}
+                                className="app-auth-button app-auth-button--secondary"
+                            >
+                                Cart ({cartItemCount})
+                            </button>
+                        )}
                         {isAuthenticated ? (
                             <button
                                 type="button"
