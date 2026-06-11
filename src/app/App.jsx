@@ -170,7 +170,7 @@ function App() {
     const [cartItemCount, setCartItemCount] = useState(0);
 
     useEffect(() => {
-        if (!initialized || !isAuthenticated) return;
+        if (!initialized || !isAuthenticated || !isProfileSynced) return;
 
         const fetchCart = async () => {
             try {
@@ -182,7 +182,7 @@ function App() {
         };
 
         fetchCart();
-    }, [initialized, isAuthenticated]);
+    }, [initialized, isAuthenticated, isProfileSynced]);
 
     const handleSignIn = () => {
         keycloak.login({
