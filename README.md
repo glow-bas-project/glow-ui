@@ -1,33 +1,42 @@
 # React + Vite
 
-This is a React + Vite front-end template for Glow UI. It is based on the official Vite React template, with some modifications to fit the needs of the project.
+This is a React + Vite front-end for Glow UI.
 
 ## Glow UI Setup
 
 1. Install dependencies with `npm install`.
-2. Create your local environment file by copying `.env.example` to `.env` and fill up the values.
-   1. `VITE_API_BASE_URL` should point to the restaurant service backend, e.g. `http://localhost:8085` for local development or the Traefik route if using the compose stack.
-   2. The Keycloak variables are only needed if you want to test authentication locally with a local Keycloak instance. If you are using the compose stack, the UI will be able to authenticate with the Keycloak service in the stack without any additional configuration.
-3. Start the restaurant backend locally with `./gradlew quarkusDev` in `glow-restaurant-service`.
-4. Start the UI dev server with `npm run dev` and open `http://localhost:5173/ui` in your browser.
+2. Copy `.env.example` to `.env` and adjust if needed.
+3. Start the compose stack from `glow-devops` (Traefik on port 80) so `/api/*` and `/auth` are available.
+4. Start the UI dev server with `npm run dev` and open `http://localhost:5173/` in your browser.
 
-### Local restaurant data
+The Vite dev server proxies `/api` and `/auth` to `http://localhost` (Traefik). API calls use fixed paths such as `/api/restaurant` and `/api/user` — the same layout as the production compose stack.
 
-The restaurant service seeds one dev restaurant automatically at startup, so once the backend is running on port `8085`, the UI should render a live restaurant list instead of the fetch error.
+### Environment variables
 
-If you use the compose stack instead of a local backend, point `VITE_API_BASE_URL` at the Traefik route for the service rather than `localhost:8085`.
+| Variable | Compose / production build | Local `npm run dev` |
+|----------|---------------------------|---------------------|
+| `VITE_APP_URL` | `http://localhost` | `http://localhost:5173` (Keycloak redirect URIs) |
+| `VITE_KEYCLOAK_URL` | `http://localhost/auth` | `http://localhost/auth` (via proxy) |
+| `VITE_KEYCLOAK_REALM` | `glow-realm` | `glow-realm` |
+| `VITE_KEYCLOAK_CLIENT_ID` | `glow-frontend` | `glow-frontend` |
 
-## React Plugins
+### Restaurant-only backend (optional)
 
-Currently, two official plugins are available:
+To hit a single Quarkus dev instance (`./gradlew quarkusDev` on port 8085) without the full stack, you would need a custom Vite proxy rewrite for `/api/restaurant` only. The supported local setup is the `glow-devops` compose stack with Traefik.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Production image
 
-## React Compiler
+Build with Keycloak and app URL baked in (see `src/main/docker/Dockerfile.prod` and `.gitlab-ci.yml`):
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+docker build -f src/main/docker/Dockerfile.prod \
+  --build-arg VITE_APP_URL=http://localhost \
+  --build-arg VITE_KEYCLOAK_URL=http://localhost/auth \
+  --build-arg VITE_KEYCLOAK_REALM=glow-realm \
+  --build-arg VITE_KEYCLOAK_CLIENT_ID=glow-frontend \
+  -t glow-ui .
+```
 
-## Expanding the ESLint configuration
+The image serves the SPA at `/` behind Traefik’s catch-all route on `GLOW_EDGE_HOST`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+GitLab CI publishes a multi-arch manifest (`linux/amd64`, `linux/arm64`) via `docker buildx`, matching the Java service pipelines in `glow-devops`.

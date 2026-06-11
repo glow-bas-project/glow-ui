@@ -31,23 +31,43 @@ push_image:
   image: docker:24
   services:
     - docker:24-dind
+  resource_group: "${CI_PROJECT_PATH}-image-publish"
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
     DOCKER_BUILDKIT: "1"
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - >-
-      docker build -f src/main/docker/Dockerfile.prod
-      --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL"
-      --build-arg VITE_APP_URL="$VITE_APP_URL"
-      --build-arg VITE_KEYCLOAK_URL="$VITE_KEYCLOAK_URL"
-      --build-arg VITE_KEYCLOAK_REALM="$VITE_KEYCLOAK_REALM"
-      --build-arg VITE_KEYCLOAK_CLIENT_ID="$VITE_KEYCLOAK_CLIENT_ID"
-      -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-      -t "$CI_REGISTRY_IMAGE:latest" .
-    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - docker push "$CI_REGISTRY_IMAGE:latest"
+    - |
+      set -euo pipefail
+      IMG="${CI_REGISTRY_IMAGE}"
+      SHORT_TAG_SHA="${IMG}:${CI_COMMIT_SHORT_SHA}"
+      LATEST_TAG="${IMG}:latest"
+
+      docker run --privileged --rm tonistiigi/binfmt:qemu-v8.1.5 --install arm64
+      docker buildx create --name glow-ui-builder --driver docker-container --use
+      docker buildx inspect --bootstrap
+
+      docker buildx build -f src/main/docker/Dockerfile.prod \
+        --platform linux/amd64,linux/arm64 \
+        --build-arg VITE_APP_URL="$VITE_APP_URL" \
+        --build-arg VITE_KEYCLOAK_URL="$VITE_KEYCLOAK_URL" \
+        --build-arg VITE_KEYCLOAK_REALM="$VITE_KEYCLOAK_REALM" \
+        --build-arg VITE_KEYCLOAK_CLIENT_ID="$VITE_KEYCLOAK_CLIENT_ID" \
+        --tag "${SHORT_TAG_SHA}" \
+        --tag "${LATEST_TAG}" \
+        --push \
+        .
+
+      verify_platforms() {
+        local tag="$1"
+        local inspect_output
+        inspect_output="$(docker buildx imagetools inspect "${tag}")"
+        echo "${inspect_output}" | grep -q "linux/amd64"
+        echo "${inspect_output}" | grep -q "linux/arm64"
+      }
+
+      verify_platforms "${SHORT_TAG_SHA}"
+      verify_platforms "${LATEST_TAG}"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"
