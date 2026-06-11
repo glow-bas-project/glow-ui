@@ -184,12 +184,12 @@ function App() {
 
     const handleSignIn = () => {
         keycloak.login({
-            redirectUri: `${import.meta.env.VITE_APP_URL}/`,
+            redirectUri: `${import.meta.env.VITE_KEYCLOAK_URL}/`,
         });
     };
 
     const handleSignOut = () => {
-        keycloak.logout({ redirectUri: `${import.meta.env.VITE_APP_URL}/` });
+        keycloak.logout({ redirectUri: `${import.meta.env.VITE_KEYCLOAK_URL}/` });
     };
 
     const restaurantCountLabel = useMemo(() => {
