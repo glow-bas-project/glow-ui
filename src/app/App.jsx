@@ -95,6 +95,7 @@ let keycloakInitPromise = null;
 function App() {
     const [initialized, setInitialized] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(Boolean(keycloak.authenticated));
+    const [isProfileSynced, setIsProfileSynced] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
 
@@ -158,7 +159,8 @@ function App() {
 
                 await userApi.post('/sync-profile', { name });
             } catch {
-                // ignore — backend may not be available in all dev setups
+                } finally {
+                    setIsProfileSynced(true);
             }
         };
 
@@ -172,7 +174,7 @@ function App() {
 
         const fetchCart = async () => {
             try {
-                const response = await cartApi.get('/cart/carts/me');
+                const response = await cartApi.get('/carts/me');
                 setCartItemCount(response.data.items?.length ?? 0);
             } catch {
                 // ignore
@@ -184,12 +186,12 @@ function App() {
 
     const handleSignIn = () => {
         keycloak.login({
-            redirectUri: `${import.meta.env.VITE_KEYCLOAK_URL}/`,
+            redirectUri: window.location.origin,
         });
     };
 
     const handleSignOut = () => {
-        keycloak.logout({ redirectUri: `${import.meta.env.VITE_KEYCLOAK_URL}/` });
+        keycloak.logout({ redirectUri: window.location.origin });
     };
 
     const restaurantCountLabel = useMemo(() => {
