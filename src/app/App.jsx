@@ -95,6 +95,7 @@ let keycloakInitPromise = null;
 function App() {
     const [initialized, setInitialized] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(Boolean(keycloak.authenticated));
+    const [isProfileSynced, setIsProfileSynced] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
 
@@ -157,8 +158,10 @@ function App() {
                     .trim() || token.preferred_username || null;
 
                 await userApi.post('/sync-profile', { name });
-            } catch {
-                // ignore — backend may not be available in all dev setups
+            } catch (error) {
+                console.error('Failed to sync profile:', error);
+            } finally {
+                setIsProfileSynced(true);
             }
         };
 
@@ -168,28 +171,28 @@ function App() {
     const [cartItemCount, setCartItemCount] = useState(0);
 
     useEffect(() => {
-        if (!initialized || !isAuthenticated) return;
+        if (!initialized || !isAuthenticated || !isProfileSynced) return;
 
         const fetchCart = async () => {
             try {
-                const response = await cartApi.get('/cart/carts/me');
+                const response = await cartApi.get('/carts/me');
                 setCartItemCount(response.data.items?.length ?? 0);
-            } catch {
-                // ignore
+            } catch (error) {
+                console.error('Failed to fetch cart:', error);
             }
         };
 
         fetchCart();
-    }, [initialized, isAuthenticated]);
+    }, [initialized, isAuthenticated, isProfileSynced]);
 
     const handleSignIn = () => {
         keycloak.login({
-            redirectUri: `${import.meta.env.VITE_KEYCLOAK_URL}/`,
+            redirectUri: window.location.origin,
         });
     };
 
     const handleSignOut = () => {
-        keycloak.logout({ redirectUri: `${import.meta.env.VITE_KEYCLOAK_URL}/` });
+        keycloak.logout({ redirectUri: window.location.origin });
     };
 
     const restaurantCountLabel = useMemo(() => {
