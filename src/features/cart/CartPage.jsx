@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
 import { cartApi } from '../../shared/api/apiClients.js';
 import { useAuth } from '../../shared/auth/useAuth.js';
+import { orderApi } from '../../shared/api/apiClients.js';
 
 function CartPage() {
     const [cart, setCart] = useState(null);
@@ -119,6 +120,19 @@ function CartPage() {
                                             className="app-auth-button app-auth-button--secondary"
                                         >
                                             Clear cart
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/checkout', {
+                                                state: {
+                                                    cart,
+                                                    restaurant: JSON.parse(sessionStorage.getItem('checkoutRestaurant') || 'null'),
+                                                }
+                                            })}
+                                            className="app-auth-button app-auth-button--primary"
+                                        >
+                                            Checkout
                                         </button>
                                     </div>
                                 </>

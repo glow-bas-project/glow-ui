@@ -98,6 +98,10 @@ function RestaurantDetailPage() {
                 quantity: 1,
                 price: item.price,
             });
+            sessionStorage.setItem('checkoutRestaurant', JSON.stringify({
+                address: restaurant.address,
+                name: restaurant.name,
+            }));
             setCartMessage(`${item.name} added to cart.`);
             refreshCart();
         } catch (err) {
