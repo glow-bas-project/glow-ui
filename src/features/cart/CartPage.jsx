@@ -2,20 +2,26 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
 import { cartApi } from '../../shared/api/apiClients.js';
+import { useAuth } from '../../shared/auth/useAuth.js';
 
 function CartPage() {
     const [cart, setCart] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { initialized, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!keycloak.authenticated) {
+        if (!initialized) {
+            return;
+        }
+
+        if (!isAuthenticated) {
             keycloak.login({ redirectUri: window.location.href });
             return;
         }
 
-        cartApi.get('/cart/carts/me')
+        cartApi.get('/carts/me')
             .then(res => {
                 setCart(res.data);
                 setLoading(false);
@@ -24,11 +30,11 @@ function CartPage() {
                 setError('Could not load your cart.');
                 setLoading(false);
             });
-    }, []);
+    }, [initialized, isAuthenticated]);
 
     const handleClear = async () => {
         try {
-            await cartApi.delete('/cart/carts/me');
+            await cartApi.delete('/carts/me');
             setCart(prev => ({ ...prev, items: [], totalPrice: 0 }));
         } catch {
             setError('Could not clear cart.');
@@ -89,7 +95,7 @@ function CartPage() {
                                                 <div className="restaurant-card__content">
                                                     <div className="restaurant-card__heading">
                                                         <h2 className="restaurant-card__title">
-                                                            Menu item
+                                                            {item.name || "Menu item"}
                                                         </h2>
                                                         <p className="restaurant-card__location">
                                                             Qty: {item.quantity}
