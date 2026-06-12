@@ -6,7 +6,6 @@ export function useCartSummary(isReady) {
 
     const refresh = useCallback(async () => {
         if (!isReady) {
-            setItemCount(0);
             return;
         }
 
@@ -20,8 +19,9 @@ export function useCartSummary(isReady) {
     }, [isReady]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         refresh();
     }, [refresh]);
 
-    return { itemCount, refresh };
+    return { itemCount: isReady ? itemCount : 0, refresh };
 }

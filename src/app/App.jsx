@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
 import { userApi } from '../shared/api/apiClients.js';
 import { useAuth } from '../shared/auth/AuthContext.jsx';
+import { cartApi } from '../shared/api/apiClients.js';
 import { useCartSummary } from '../shared/hooks/useCartSummary.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
 import { useNavigate } from 'react-router-dom';
@@ -95,7 +96,7 @@ function RestaurantCard({ restaurant, index, onClick }) {
 let keycloakInitPromise = null;
 
 function App() {
-    const { initialized, isAuthenticated } = useAuth();
+    const { initialized, isAuthenticated, setIsAuthenticated, setInitialized } = useAuth();
     const [isProfileSynced, setIsProfileSynced] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
@@ -170,21 +171,6 @@ function App() {
     }, [initialized, isAuthenticated]);
 
     const { itemCount: cartItemCount } = useCartSummary(initialized && isAuthenticated && isProfileSynced);
-
-    useEffect(() => {
-        if (!initialized || !isAuthenticated || !isProfileSynced) return;
-
-        const fetchCart = async () => {
-            try {
-                const response = await cartApi.get('/carts/me');
-                setCartItemCount(response.data.items?.length ?? 0);
-            } catch (error) {
-                console.error('Failed to fetch cart:', error);
-            }
-        };
-
-        fetchCart();
-    }, [initialized, isAuthenticated, isProfileSynced]);
 
     const handleSignIn = () => {
         keycloak.login({
