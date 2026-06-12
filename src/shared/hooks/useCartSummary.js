@@ -5,13 +5,14 @@ export function useCartSummary(isReady) {
     const [itemCount, setItemCount] = useState(0);
 
     const refresh = useCallback(async () => {
-        if (!isReady) {
-            return;
-        }
+        if (!isReady) return;
 
         try {
             const response = await cartApi.get('/carts/me');
-            const totalItems = response.data.items.reduce((sum, item) => sum + item.quantity, 0);
+            const totalItems = response.data.items.reduce(
+                (sum, item) => sum + item.quantity,
+                0
+            );
             setItemCount(totalItems);
         } catch (error) {
             console.error('Failed to fetch cart:', error);
@@ -19,9 +20,21 @@ export function useCartSummary(isReady) {
     }, [isReady]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        refresh();
-    }, [refresh]);
+        if (!isReady) return;
+
+        (async () => {
+            try {
+                const response = await cartApi.get('/carts/me');
+                const totalItems = response.data.items.reduce(
+                    (sum, item) => sum + item.quantity,
+                    0
+                );
+                setItemCount(totalItems);
+            } catch (error) {
+                console.error('Failed to fetch cart:', error);
+            }
+        })();
+    }, [isReady]);
 
     return { itemCount: isReady ? itemCount : 0, refresh };
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
 import { cartApi } from '../../shared/api/apiClients.js';
-import { useAuth } from '../../shared/auth/AuthContext.jsx';
+import { useAuth } from '../../shared/auth/useAuth.js';
 
 function CartPage() {
     const [cart, setCart] = useState(null);

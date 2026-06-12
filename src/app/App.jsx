@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
 import { userApi } from '../shared/api/apiClients.js';
-import { useAuth } from '../shared/auth/AuthContext.jsx';
+import { useAuth } from '../shared/auth/useAuth.js';
 import { useCartSummary } from '../shared/hooks/useCartSummary.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
 import { useNavigate } from 'react-router-dom';
