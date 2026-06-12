@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
 import { userApi } from '../shared/api/apiClients.js';
 import { useAuth } from '../shared/auth/AuthContext.jsx';
-import { cartApi } from '../shared/api/apiClients.js';
 import { useCartSummary } from '../shared/hooks/useCartSummary.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
 import { useNavigate } from 'react-router-dom';
@@ -144,7 +143,7 @@ function App() {
             keycloak.onAuthSuccess = undefined;
             keycloak.onAuthLogout = undefined;
         };
-    }, []);
+    }, [setIsAuthenticated, setInitialized]);
 
     useEffect(() => {
         if (!initialized || !isAuthenticated) {

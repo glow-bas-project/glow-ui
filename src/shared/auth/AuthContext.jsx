@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import keycloak from '../../app/keycloak.js';
 
-// eslint-disable-next-line react-refresh/only-export-components
 const AuthContext = createContext({
     initialized: false,
     isAuthenticated: false,
@@ -59,6 +58,7 @@ export function AuthProvider({ children }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
     return useContext(AuthContext);
 }

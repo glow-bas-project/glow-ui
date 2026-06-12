@@ -12,7 +12,6 @@ export function useRestaurantDetails(restaurantId) {
         if (!restaurantId) return;
 
         let isActive = true;
-        setError(null);
 
         Promise.all([
             getRestaurantById(restaurantId),
