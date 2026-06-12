@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
-import { cartApi, userApi } from '../shared/api/apiClients.js';
+import { userApi } from '../shared/api/apiClients.js';
+import { useAuth } from '../shared/auth/useAuth.js';
+import { useCartSummary } from '../shared/hooks/useCartSummary.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
@@ -54,11 +56,11 @@ function getRestaurantTags(restaurant) {
     return fallbackTags.slice(0, 3);
 }
 
-function RestaurantCard({ restaurant, index }) {
+function RestaurantCard({ restaurant, index, onClick }) {
     const tags = getRestaurantTags(restaurant);
 
     return (
-        <article className="restaurant-card">
+        <article className="restaurant-card" onClick={onClick} style={{ cursor: 'pointer' }}>
             <div className="restaurant-card__media">
                 <img
                     src={getRestaurantImage(restaurant, index)}
@@ -93,8 +95,7 @@ function RestaurantCard({ restaurant, index }) {
 let keycloakInitPromise = null;
 
 function App() {
-    const [initialized, setInitialized] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(Boolean(keycloak.authenticated));
+    const { initialized, isAuthenticated, setIsAuthenticated, setInitialized } = useAuth();
     const [isProfileSynced, setIsProfileSynced] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
@@ -142,7 +143,7 @@ function App() {
             keycloak.onAuthSuccess = undefined;
             keycloak.onAuthLogout = undefined;
         };
-    }, []);
+    }, [setIsAuthenticated, setInitialized]);
 
     useEffect(() => {
         if (!initialized || !isAuthenticated) {
@@ -168,22 +169,7 @@ function App() {
         syncProfile();
     }, [initialized, isAuthenticated]);
 
-    const [cartItemCount, setCartItemCount] = useState(0);
-
-    useEffect(() => {
-        if (!initialized || !isAuthenticated || !isProfileSynced) return;
-
-        const fetchCart = async () => {
-            try {
-                const response = await cartApi.get('/carts/me');
-                setCartItemCount(response.data.items?.length ?? 0);
-            } catch (error) {
-                console.error('Failed to fetch cart:', error);
-            }
-        };
-
-        fetchCart();
-    }, [initialized, isAuthenticated, isProfileSynced]);
+    const { itemCount: cartItemCount } = useCartSummary(initialized && isAuthenticated && isProfileSynced);
 
     const handleSignIn = () => {
         keycloak.login({
@@ -341,6 +327,7 @@ function App() {
                                     key={restaurant.id ?? restaurant.name ?? index}
                                     restaurant={restaurant}
                                     index={index}
+                                    onClick={() => navigate(`/restaurants/${restaurant.id}`)}
                                 />
                             ))}
                         </div>
