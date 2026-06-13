@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { formatPrice } from '../../shared/utils/formatPrice.js';
 
 function OrderConfirmationPage() {
     const { state } = useLocation();
@@ -26,7 +27,7 @@ function OrderConfirmationPage() {
                         </p>
                         {order && (
                             <p className="app-section-copy">
-                                Order total: <strong>{order.totalPrice} kr</strong>
+                                Order total: <strong>{formatPrice(order.totalPrice)}</strong>
                             </p>
                         )}
                     </div>

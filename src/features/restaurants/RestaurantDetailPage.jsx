@@ -5,6 +5,8 @@ import { cartApi } from '../../shared/api/apiClients.js';
 import { useAuth } from '../../shared/auth/useAuth.js';
 import { useCartSummary } from '../../shared/hooks/useCartSummary.js';
 import { useRestaurantDetails } from './hooks/useRestaurantDetails.js';
+import { formatPrice } from '../../shared/utils/formatPrice.js';
+import { useRoles } from '../../shared/auth/useRoles.js';
 
 function formatTime(time) {
     return typeof time === 'string' ? time.slice(0, 5) : time;
@@ -33,7 +35,7 @@ function OpeningHours({ openingHours }) {
     );
 }
 
-function MenuItemCard({ item, onAddToCart, addingId }) {
+function MenuItemCard({ item, onAddToCart, addingId, isRestaurantUser }) {
     const isAdding = addingId === item.id;
 
     return (
@@ -46,7 +48,7 @@ function MenuItemCard({ item, onAddToCart, addingId }) {
 
                 <div className="restaurant-card__tags">
                     <span className="restaurant-card__tag">{item.category}</span>
-                    <span className="restaurant-card__tag">{item.price} kr</span>
+                    <span className="restaurant-card__tag">{formatPrice(item.price)}</span>
                 </div>
 
                 {Array.isArray(item.ingredients) && item.ingredients.length > 0 && (
@@ -55,15 +57,17 @@ function MenuItemCard({ item, onAddToCart, addingId }) {
                     </p>
                 )}
 
-                <button
-                    type="button"
-                    onClick={() => onAddToCart(item)}
-                    disabled={isAdding}
-                    className="app-auth-button app-auth-button--primary"
-                    style={{ marginTop: '0.75rem' }}
-                >
-                    {isAdding ? 'Adding...' : 'Add to cart'}
-                </button>
+                {!isRestaurantUser && (
+                    <button
+                        type="button"
+                        onClick={() => onAddToCart(item)}
+                        disabled={isAdding}
+                        className="app-auth-button app-auth-button--primary"
+                        style={{ marginTop: '0.75rem' }}
+                    >
+                        {isAdding ? 'Adding...' : 'Add to cart'}
+                    </button>
+                )}
             </div>
         </article>
     );
@@ -77,6 +81,7 @@ function RestaurantDetailPage() {
     const { itemCount: cartItemCount, refresh: refreshCart } = useCartSummary(initialized && isAuthenticated);
     const [addingId, setAddingId] = useState(null);
     const [cartMessage, setCartMessage] = useState(null);
+    const { isRestaurantUser } = useRoles();
 
     const handleAddToCart = async (item) => {
         if (!initialized) {
@@ -99,6 +104,7 @@ function RestaurantDetailPage() {
                 price: item.price,
             });
             sessionStorage.setItem('checkoutRestaurant', JSON.stringify({
+                id: restaurant.id,
                 address: restaurant.address,
                 name: restaurant.name,
             }));
@@ -133,13 +139,24 @@ function RestaurantDetailPage() {
                         >
                             Back to restaurants
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => navigate('/cart')}
-                            className="app-auth-button app-auth-button--secondary"
-                        >
-                            Cart ({cartItemCount})
-                        </button>
+                        {!isRestaurantUser && (
+                            <button
+                                type="button"
+                                onClick={() => navigate('/cart')}
+                                className="app-auth-button app-auth-button--secondary"
+                            >
+                                Cart ({cartItemCount})
+                            </button>
+                        )}
+                        {isRestaurantUser && (
+                            <button
+                                type="button"
+                                onClick={() => navigate(`/restaurants/${id}/orders`)}
+                                className="app-auth-button app-auth-button--secondary"
+                            >
+                                View orders
+                            </button>
+                        )}
                     </div>
                 </header>
 
@@ -184,6 +201,7 @@ function RestaurantDetailPage() {
                                             item={item}
                                             onAddToCart={handleAddToCart}
                                             addingId={addingId}
+                                            isRestaurantUser={isRestaurantUser}
                                         />
                                     ))}
                                 </div>
