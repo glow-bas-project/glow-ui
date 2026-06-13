@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
 import { userApi } from '../shared/api/apiClients.js';
 import { useAuth } from '../shared/auth/useAuth.js';
-import { useCartSummary } from '../shared/hooks/useCartSummary.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
 import { useNavigate } from 'react-router-dom';
+import { useRoles } from '../shared/auth/useRoles.js';
 import './App.css';
 
 const restaurantImages = [
@@ -96,9 +96,9 @@ let keycloakInitPromise = null;
 
 function App() {
     const { initialized, isAuthenticated, setIsAuthenticated, setInitialized } = useAuth();
-    const [isProfileSynced, setIsProfileSynced] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
+    const { isRestaurantUser, restaurantId } = useRoles();
 
     const navigate = useNavigate();
 
@@ -161,15 +161,11 @@ function App() {
                 await userApi.post('/sync-profile', { name });
             } catch (error) {
                 console.error('Failed to sync profile:', error);
-            } finally {
-                setIsProfileSynced(true);
             }
         };
 
         syncProfile();
     }, [initialized, isAuthenticated]);
-
-    const { itemCount: cartItemCount } = useCartSummary(initialized && isAuthenticated && isProfileSynced);
 
     const handleSignIn = () => {
         keycloak.login({
@@ -217,13 +213,22 @@ function App() {
                     </div>
 
                     <div className="app-header__actions">
-                        {isAuthenticated && (
+                        {isAuthenticated && isRestaurantUser && restaurantId && (
                             <button
                                 type="button"
-                                onClick={() => navigate('/cart')}
+                                onClick={() => navigate(`/restaurants/${restaurantId}/orders`)}
                                 className="app-auth-button app-auth-button--secondary"
                             >
-                                Cart ({cartItemCount})
+                                My orders
+                            </button>
+                        )}
+                        {isAuthenticated && isRestaurantUser && !restaurantId && (
+                            <button
+                                type="button"
+                                onClick={() => navigate('/restaurant-dashboard')}
+                                className="app-auth-button app-auth-button--secondary"
+                            >
+                                My orders
                             </button>
                         )}
                         {isAuthenticated ? (
