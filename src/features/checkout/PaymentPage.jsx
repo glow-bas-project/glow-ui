@@ -34,7 +34,7 @@ function PaymentPage() {
         try {
             const authHeader = { 'Authorization': `Bearer ${keycloak.token}` };
             
-            const { order, cart, restaurantId } = state ?? {};
+            const { order, restaurantId } = state ?? {};
 
             // 1. Look up the payment record by stripe payment intent id
             const paymentResponse = await fetch(

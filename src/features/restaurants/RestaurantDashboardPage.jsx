@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { restaurantApi } from '../../shared/api/apiClients.js';
-import keycloak from '../../app/keycloak.js';
 import { useRoles } from '../../shared/auth/useRoles.js';
 
 function RestaurantDashboardPage() {

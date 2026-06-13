@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { restaurantApi } from '../../shared/api/apiClients.js';
 import { formatPrice } from '../../shared/utils/formatPrice.js';
+import { usePollingResource } from '../../shared/hooks/usePollingResource.js';
 
 const COLUMNS = [
     { key: 'PROCESSING', label: 'Incoming orders' },
@@ -81,50 +82,24 @@ function OrderCard({ order, restaurantId, onStatusChange }) {
 function RestaurantOrdersPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    // Use a Map keyed by orderId — prevents duplicates regardless of timing
-    const [ordersMap, setOrdersMap] = useState(new Map());
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [statusOverrides, setStatusOverrides] = useState({});
 
     const fetchOrders = useCallback(async () => {
-        try {
-            const res = await restaurantApi.get(`/restaurants/${id}/orders`);
-            setOrdersMap(prev => {
-                const next = new Map(prev);
-                for (const order of res.data) {
-                    // Only add if not already tracked locally
-                    // (local status is authoritative after first load)
-                    if (!next.has(order.orderId)) {
-                        next.set(order.orderId, order);
-                    }
-                }
-                return next;
-            });
-        } catch (err) {
-            setError('Could not load orders.');
-        } finally {
-            setLoading(false);
-        }
+        const res = await restaurantApi.get(`/restaurants/${id}/orders`);
+        return res.data;
     }, [id]);
 
-    useEffect(() => {
-        fetchOrders();
-        const interval = setInterval(fetchOrders, 15000);
-        return () => clearInterval(interval);
-    }, [fetchOrders]);
+    const { data, loading, error, refresh } = usePollingResource(fetchOrders, 15000);
 
     const handleStatusChange = useCallback((orderId, newStatus) => {
-        setOrdersMap(prev => {
-            const next = new Map(prev);
-            const order = next.get(orderId);
-            if (order) {
-                next.set(orderId, { ...order, status: newStatus });
-            }
-            return next;
-        });
+        setStatusOverrides(prev => ({ ...prev, [orderId]: newStatus }));
     }, []);
 
-    const orders = Array.from(ordersMap.values());
+    const orders = (data ?? []).map(order => ({
+        ...order,
+        status: statusOverrides[order.orderId] ?? order.status,
+    }));
+
     const activeOrders = orders.filter(o => o.status !== 'DELIVERING');
     const fulfilledOrders = orders.filter(o => o.status === 'DELIVERING');
 
@@ -142,7 +117,7 @@ function RestaurantOrdersPage() {
                     <div className="app-header__actions">
                         <button
                             type="button"
-                            onClick={fetchOrders}
+                            onClick={refresh}
                             className="app-auth-button app-auth-button--secondary"
                         >
                             Refresh
@@ -162,11 +137,10 @@ function RestaurantOrdersPage() {
                         <div className="app-state app-state--loading">Loading orders...</div>
                     )}
                     {error && (
-                        <div className="app-state app-state--error">{error}</div>
+                        <div className="app-state app-state--error">Could not load orders.</div>
                     )}
                     {!loading && !error && (
                         <>
-                            {/* Kanban columns */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
                                 {COLUMNS.map(col => {
                                     const colOrders = activeOrders.filter(o => o.status === col.key);
@@ -195,7 +169,6 @@ function RestaurantOrdersPage() {
                                 })}
                             </div>
 
-                            {/* Fulfilled orders — outside the grid */}
                             {fulfilledOrders.length > 0 && (
                                 <div style={{ marginTop: '2.5rem' }}>
                                     <h2 className="app-section-title" style={{ marginBottom: '1rem' }}>
@@ -217,13 +190,7 @@ function RestaurantOrdersPage() {
                                                     #{order.orderId.slice(0, 8)}
                                                 </span>
                                                 <span style={{ flex: 1, color: 'var(--color-text-secondary, #6b7280)', fontSize: '0.875rem' }}>
-                                                    {(() => {
-                                                        const totalItems = order.items.reduce(
-                                                            (sum, item) => sum + item.quantity,
-                                                            0
-                                                        );
-                                                        return totalItems;
-                                                    })()} item(s) 
+                                                    {order.items.reduce((sum, item) => sum + item.quantity, 0)} item(s)
                                                 </span>
                                                 <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                                                     {formatPrice(order.totalPrice)}

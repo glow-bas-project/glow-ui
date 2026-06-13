@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
 import { userApi } from '../shared/api/apiClients.js';
 import { useAuth } from '../shared/auth/useAuth.js';
-import { useCartSummary } from '../shared/hooks/useCartSummary.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
 import { useNavigate } from 'react-router-dom';
 import { useRoles } from '../shared/auth/useRoles.js';
@@ -97,7 +96,6 @@ let keycloakInitPromise = null;
 
 function App() {
     const { initialized, isAuthenticated, setIsAuthenticated, setInitialized } = useAuth();
-    const [isProfileSynced, setIsProfileSynced] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
     const { isRestaurantUser, restaurantId } = useRoles();
@@ -163,15 +161,11 @@ function App() {
                 await userApi.post('/sync-profile', { name });
             } catch (error) {
                 console.error('Failed to sync profile:', error);
-            } finally {
-                setIsProfileSynced(true);
             }
         };
 
         syncProfile();
     }, [initialized, isAuthenticated]);
-
-    const { itemCount: cartItemCount } = useCartSummary(initialized && isAuthenticated && isProfileSynced);
 
     const handleSignIn = () => {
         keycloak.login({
