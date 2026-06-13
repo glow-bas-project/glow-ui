@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
 import { orderApi } from '../../shared/api/apiClients.js';
+import { formatPrice } from '../../shared/utils/formatPrice.js';
 
 function CheckoutPage() {
     const { state } = useLocation();
@@ -67,6 +68,7 @@ function CheckoutPage() {
                 phoneNumber: form.phoneNumber,
                 customerId,
                 totalPrice: cart.totalPrice,
+                restaurantId: restaurant?.id,
                 orderItems: cart.items.map(item => ({
                     menuItemId: item.menuItemId,
                     name: item.name,
@@ -79,7 +81,7 @@ function CheckoutPage() {
 
             // Navigate to payment with the order data
             navigate('/payment', {
-                state: { order, cart },
+                state: { order, cart, restaurantId: restaurant?.id },
             });
         } catch (err) {
             console.error('Checkout failed:', err);
@@ -115,7 +117,7 @@ return (
                 <div className="app-search-panel__intro">
                     <h2 className="app-section-title">Delivery details</h2>
                     <p className="app-section-copy">
-                        Order total: <strong>{cart.totalPrice} kr</strong> &mdash; {cart.items.length} item(s)
+                        Order total: <strong>{formatPrice(cart.totalPrice)}</strong> &ndash; {cart.items.length} item(s)
                     </p>
                 </div>
 
