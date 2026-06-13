@@ -120,6 +120,19 @@ function CartPage() {
                                         >
                                             Clear cart
                                         </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/checkout', {
+                                                state: {
+                                                    cart,
+                                                    restaurant: JSON.parse(sessionStorage.getItem('checkoutRestaurant') || 'null'),
+                                                }
+                                            })}
+                                            className="app-auth-button app-auth-button--primary"
+                                        >
+                                            Checkout
+                                        </button>
                                     </div>
                                 </>
                             )}
