@@ -7,7 +7,6 @@ function PaymentPage() {
     const { state } = useLocation();
     const navigate = useNavigate();
     const order = state?.order;
-    const cart = state?.cart;
 
     const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242');
     const [expiry, setExpiry] = useState('12/30');

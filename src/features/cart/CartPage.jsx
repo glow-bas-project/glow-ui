@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
 import { cartApi } from '../../shared/api/apiClients.js';
 import { useAuth } from '../../shared/auth/useAuth.js';
-import { orderApi } from '../../shared/api/apiClients.js';
 
 function CartPage() {
     const [cart, setCart] = useState(null);
