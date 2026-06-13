@@ -15,3 +15,4 @@ export const restaurantApi = withAuth(axios.create({ baseURL: '/api/restaurant' 
 export const userApi = withAuth(axios.create({ baseURL: '/api/user' }));
 export const cartApi = withAuth(axios.create({ baseURL: '/api/cart' }));
 export const menuApi = withAuth(axios.create({ baseURL: '/api/menu' }));
+export const orderApi = withAuth(axios.create({ baseURL: '/api/order' }));
