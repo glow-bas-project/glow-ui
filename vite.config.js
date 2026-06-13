@@ -16,6 +16,11 @@ export default defineConfig({
                 target: 'http://localhost',
                 changeOrigin: true,
             },
+            '/stripe-mock': {
+                target: 'http://localhost:12111',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/stripe-mock/, ''),
+            },
         },
     },
 })
