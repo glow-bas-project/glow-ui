@@ -16,6 +16,19 @@ const NEXT_STATUS = {
     COMPLETED:  { status: 'DELIVERING', label: 'Done – order has been picked up' },
 };
 
+const STATUS_RANK = { PROCESSING: 0, PREPARING: 1, COMPLETED: 2, DELIVERING: 3 };
+
+function dedupeByLatestStatus(rawOrders) {
+    const byId = new Map();
+    for (const order of rawOrders) {
+        const existing = byId.get(order.orderId);
+        if (!existing || STATUS_RANK[order.status] > STATUS_RANK[existing.status]) {
+            byId.set(order.orderId, order);
+        }
+    }
+    return Array.from(byId.values());
+}
+
 function OrderCard({ order, restaurantId, onStatusChange }) {
     const [updating, setUpdating] = useState(false);
     const next = NEXT_STATUS[order.status];
@@ -95,7 +108,7 @@ function RestaurantOrdersPage() {
         setStatusOverrides(prev => ({ ...prev, [orderId]: newStatus }));
     }, []);
 
-    const orders = (data ?? []).map(order => ({
+    const orders = dedupeByLatestStatus(data ?? []).map(order => ({
         ...order,
         status: statusOverrides[order.orderId] ?? order.status,
     }));
