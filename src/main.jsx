@@ -8,6 +8,8 @@ import RestaurantDetailPage from './features/restaurants/RestaurantDetailPage.js
 import CheckoutPage from './features/checkout/CheckoutPage.jsx';
 import PaymentPage from './features/checkout/PaymentPage.jsx';
 import OrderConfirmationPage from './features/checkout/OrderConfirmationPage.jsx';
+import RestaurantOrdersPage from './features/restaurants/RestaurantOrdersPage.jsx';
+import RestaurantDashboardPage from './features/restaurants/RestaurantDashboardPage.jsx';
 import './index.css';
 
 const root = createRoot(document.getElementById('root'));
@@ -23,6 +25,8 @@ root.render(
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/payment" element={<PaymentPage />} />
                     <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                    <Route path="/restaurants/:id/orders" element={<RestaurantOrdersPage />} />
+                    <Route path="/restaurant-dashboard" element={<RestaurantDashboardPage />} />
                 </Routes>
             </AuthProvider>
         </BrowserRouter>

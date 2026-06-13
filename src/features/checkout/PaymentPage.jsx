@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cartApi } from '../../shared/api/apiClients.js';
 import keycloak from '../../app/keycloak.js';
+import { formatPrice } from '../../shared/utils/formatPrice.js';
 
 function PaymentPage() {
     const { state } = useLocation();
@@ -32,6 +33,8 @@ function PaymentPage() {
 
         try {
             const authHeader = { 'Authorization': `Bearer ${keycloak.token}` };
+            
+            const { order, cart, restaurantId } = state ?? {};
 
             // 1. Look up the payment record by stripe payment intent id
             const paymentResponse = await fetch(
@@ -50,6 +53,19 @@ function PaymentPage() {
                     body: JSON.stringify({}),
                 }
             );
+
+            if (restaurantId) {
+                const keycloak = (await import('../../app/keycloak.js')).default;
+                await fetch(`/api/order/${order.id}/notify-restaurant`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${keycloak.token}`,
+                    },
+                    body: JSON.stringify({ restaurantId }),
+                });
+            }
+
             if (!confirmResponse.ok) throw new Error('Payment confirmation failed');
 
             // 3. Clear the cart
@@ -89,7 +105,7 @@ function PaymentPage() {
 
                 <section className="app-search-panel">
                     <div className="app-search-panel__intro">
-                        <h2 className="app-section-title">Pay {order.totalPrice} kr</h2>
+                        <h2 className="app-section-title">Pay {formatPrice(order.totalPrice)}</h2>
                         <p className="app-section-copy">
                             This is a test environment. Use the pre-filled fake card details below.
                         </p>
@@ -132,7 +148,7 @@ function PaymentPage() {
                             disabled={submitting}
                             className="app-auth-button app-auth-button--primary"
                         >
-                            {submitting ? 'Processing payment...' : `Pay ${order.totalPrice} kr`}
+                            {submitting ? 'Processing payment...' : `Pay ${formatPrice(order.totalPrice)}`}
                         </button>
                     </div>
                 </section>

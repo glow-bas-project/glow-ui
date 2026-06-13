@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
 import { cartApi } from '../../shared/api/apiClients.js';
 import { useAuth } from '../../shared/auth/useAuth.js';
+import { formatPrice } from '../../shared/utils/formatPrice.js';
 
 function CartPage() {
     const [cart, setCart] = useState(null);
@@ -103,7 +104,7 @@ function CartPage() {
                                                     </div>
                                                     <div className="restaurant-card__tags">
                                                         <span className="restaurant-card__tag">
-                                                            {item.price} kr
+                                                            {formatPrice(item.price)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -112,7 +113,7 @@ function CartPage() {
                                     </div>
 
                                     <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                        <p><strong>Total: {cart.totalPrice} kr</strong></p>
+                                        <p><strong>Total: {formatPrice(cart.totalPrice)}</strong></p>
                                         <button
                                             type="button"
                                             onClick={handleClear}
