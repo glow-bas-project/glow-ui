@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import keycloak from './keycloak.js';
+import { getAppRedirectUri } from './runtimeConfig.js';
 import { userApi } from '../shared/api/apiClients.js';
 import { useAuth } from '../shared/auth/useAuth.js';
 import { useRestaurants } from '../features/restaurants/hooks/useRestaurants.js';
@@ -169,12 +170,12 @@ function App() {
 
     const handleSignIn = () => {
         keycloak.login({
-            redirectUri: window.location.origin,
+            redirectUri: getAppRedirectUri('/'),
         });
     };
 
     const handleSignOut = () => {
-        keycloak.logout({ redirectUri: window.location.origin });
+        keycloak.logout({ redirectUri: getAppRedirectUri('/') });
     };
 
     const restaurantCountLabel = useMemo(() => {

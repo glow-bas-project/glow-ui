@@ -5,20 +5,29 @@ This is a React + Vite front-end for Glow UI.
 ## Glow UI Setup
 
 1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env` and adjust if needed.
+2. Adjust `public/config.js` if your local URLs differ (defaults target `npm run dev` on port 5173).
 3. Start the compose stack from `glow-devops` (Traefik on port 80) so `/api/*` and `/auth` are available.
 4. Start the UI dev server with `npm run dev` and open `http://localhost:5173/` in your browser.
 
-The Vite dev server proxies `/api` and `/auth` to `http://localhost` (Traefik). API calls use fixed paths such as `/api/restaurant` and `/api/user` — the same layout as the production compose stack.
+The Vite dev server proxies `/api` and `/auth` to `http://localhost` (Traefik). API calls use relative paths such as `/api/restaurant` and `/api/user`.
 
-### Environment variables
+### Runtime configuration (not build-time)
 
-| Variable | Compose / production build | Local `npm run dev` |
-|----------|---------------------------|---------------------|
-| `VITE_APP_URL` | `http://localhost` | `http://localhost:5173` (Keycloak redirect URIs) |
-| `VITE_KEYCLOAK_URL` | `http://localhost/auth` | `http://localhost/auth` (via proxy) |
-| `VITE_KEYCLOAK_REALM` | `glow-realm` | `glow-realm` |
-| `VITE_KEYCLOAK_CLIENT_ID` | `glow-frontend` | `glow-frontend` |
+The SPA loads `/config.js` before the bundle. Keycloak and redirect URIs come from `window.__GLOW_CONFIG__`.
+
+| Variable | Purpose | Compose example | k3d local example |
+|----------|---------|-----------------|-------------------|
+| `GLOW_APP_URL` | Public UI origin (redirect URIs) | `http://localhost` | `http://localhost:8880` |
+| `GLOW_KEYCLOAK_URL` | Keycloak base URL | `http://localhost/auth` | `http://localhost:8880/auth` |
+| `GLOW_KEYCLOAK_REALM` | Realm name | `glow-realm` | `glow-realm` |
+| `GLOW_KEYCLOAK_CLIENT_ID` | Public OIDC client | `glow-frontend` | `glow-frontend` |
+| `GLOW_PATH_PREFIX` | Router basename | `""` | `""` (staging: `/staging`) |
+
+**Local `npm run dev`:** edit `public/config.js` (no container env vars).
+
+**Docker / Kubernetes:** set `GLOW_*` on the `glow-ui` container. Helm maps them from `global.publicOrigin`, `global.authBaseUrl`, and `global.pathPrefix` in `glow-devops`.
+
+One registry image works for all environments — no per-env `docker build` for URLs.
 
 ### Restaurant-only backend (optional)
 
@@ -26,17 +35,12 @@ To hit a single Quarkus dev instance (`./gradlew quarkusDev` on port 8085) witho
 
 ## Production image
 
-Build with Keycloak and app URL baked in (see `src/main/docker/Dockerfile.prod` and `.gitlab-ci.yml`):
-
 ```bash
-docker build -f src/main/docker/Dockerfile.prod \
-  --build-arg VITE_APP_URL=http://localhost \
-  --build-arg VITE_KEYCLOAK_URL=http://localhost/auth \
-  --build-arg VITE_KEYCLOAK_REALM=glow-realm \
-  --build-arg VITE_KEYCLOAK_CLIENT_ID=glow-frontend \
-  -t glow-ui .
+docker build -f src/main/docker/Dockerfile.prod -t glow-ui .
+docker run --rm -p 8080:80 \
+  -e GLOW_APP_URL=http://localhost \
+  -e GLOW_KEYCLOAK_URL=http://localhost/auth \
+  glow-ui
 ```
 
-The image serves the SPA at `/` behind Traefik’s catch-all route on `GLOW_EDGE_HOST`.
-
-GitLab CI publishes a multi-arch manifest (`linux/amd64`, `linux/arm64`) via `docker buildx`, matching the Java service pipelines in `glow-devops`.
+GitLab CI publishes a multi-arch manifest (`linux/amd64`, `linux/arm64`) via `docker buildx`.

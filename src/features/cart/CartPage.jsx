@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import keycloak from '../../app/keycloak.js';
+import { getAppRedirectUri } from '../../app/runtimeConfig.js';
 import { cartApi } from '../../shared/api/apiClients.js';
 import { useAuth } from '../../shared/auth/useAuth.js';
 import { formatPrice } from '../../shared/utils/formatPrice.js';
@@ -64,7 +65,7 @@ function CartPage() {
                         {keycloak.authenticated && (
                             <button
                                 type="button"
-                                onClick={() => keycloak.logout({ redirectUri: `${import.meta.env.VITE_APP_URL}/` })}
+                                onClick={() => keycloak.logout({ redirectUri: getAppRedirectUri('/') })}
                                 className="app-auth-button app-auth-button--secondary"
                             >
                                 Sign out
