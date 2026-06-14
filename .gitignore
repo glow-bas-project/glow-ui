@@ -28,3 +28,9 @@ dist-ssr
 .env.*.local
 
 .vite
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

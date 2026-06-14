@@ -4,11 +4,13 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-    { ignores: ['dist', '.vite', 'node_modules'] },
     {
-        files: ['**/*.{js,jsx}'],
+        ignores: ['dist', '.vite', 'node_modules', 'public/config.js'],
+    },
+    {
+        files: ['src/**/*.{js,jsx}'],
         languageOptions: {
-            ecmaVersion: 2020,
+            ecmaVersion: 2022,
             sourceType: 'module',
             globals: globals.browser,
             parserOptions: {
@@ -25,6 +27,17 @@ export default [
             ...js.configs.recommended.rules,
             ...reactHooks.configs.recommended.rules,
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+        },
+    },
+    {
+        files: ['e2e/**/*.js', 'playwright.config.js', 'vite.config.js'],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'module',
+            globals: globals.node,
+        },
+        rules: {
+            ...js.configs.recommended.rules,
         },
     },
 ]
