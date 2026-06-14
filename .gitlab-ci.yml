@@ -50,10 +50,6 @@ push_image:
 
       docker buildx build -f src/main/docker/Dockerfile.prod \
         --platform linux/amd64,linux/arm64 \
-        --build-arg VITE_APP_URL="$VITE_APP_URL" \
-        --build-arg VITE_KEYCLOAK_URL="$VITE_KEYCLOAK_URL" \
-        --build-arg VITE_KEYCLOAK_REALM="$VITE_KEYCLOAK_REALM" \
-        --build-arg VITE_KEYCLOAK_CLIENT_ID="$VITE_KEYCLOAK_CLIENT_ID" \
         --tag "${SHORT_TAG_SHA}" \
         --tag "${LATEST_TAG}" \
         --push \

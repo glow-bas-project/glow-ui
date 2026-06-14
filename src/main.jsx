@@ -8,6 +8,7 @@ import RestaurantDetailPage from './features/restaurants/RestaurantDetailPage.js
 import CheckoutPage from './features/checkout/CheckoutPage.jsx';
 import PaymentPage from './features/checkout/PaymentPage.jsx';
 import OrderConfirmationPage from './features/checkout/OrderConfirmationPage.jsx';
+import { getRouterBasename } from './app/runtimeConfig.js';
 import RestaurantOrdersPage from './features/restaurants/RestaurantOrdersPage.jsx';
 import RestaurantDashboardPage from './features/restaurants/RestaurantDashboardPage.jsx';
 import './index.css';
@@ -16,7 +17,7 @@ const root = createRoot(document.getElementById('root'));
 
 root.render(
     <StrictMode>
-        <BrowserRouter>
+        <BrowserRouter basename={getRouterBasename()}>
             <AuthProvider>
                 <Routes>
                     <Route path="/" element={<App />} />

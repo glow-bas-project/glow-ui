@@ -1,35 +1,18 @@
 ####
-# This Dockerfile is used in order to build a container that runs the glow-ui application in production mode.
+# Production image for glow-ui (nginx + static Vite build).
 #
-# Before building the container image run:
-#
-# npm ci
-# npm run build
-#
-# Then, build the image with:
+# Auth URLs are configured at container start via GLOW_* env vars (see docker-entrypoint.sh),
+# not at npm build time — one image works for compose, k3d, staging, and production.
 #
 # docker build -f src/main/docker/Dockerfile.prod -t glow-ui .
-#
-# Then run the container using:
-#
-# docker run -i --rm -p 80:80 glow-ui
-#
-# This image uses nginx to serve the static Vite build at /
-#
+# docker run --rm -p 8080:80 \
+#   -e GLOW_APP_URL=http://localhost:8880 \
+#   -e GLOW_KEYCLOAK_URL=http://localhost:8880/auth \
+#   glow-ui
 ####
 FROM node:22-alpine AS build
 
 WORKDIR /app
-
-ARG VITE_APP_URL
-ARG VITE_KEYCLOAK_URL
-ARG VITE_KEYCLOAK_REALM
-ARG VITE_KEYCLOAK_CLIENT_ID
-
-ENV VITE_APP_URL=${VITE_APP_URL}
-ENV VITE_KEYCLOAK_URL=${VITE_KEYCLOAK_URL}
-ENV VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}
-ENV VITE_KEYCLOAK_CLIENT_ID=${VITE_KEYCLOAK_CLIENT_ID}
 
 COPY package*.json ./
 RUN npm ci
@@ -53,7 +36,9 @@ server {
 EOF
 
 COPY --from=build /app/dist/ /usr/share/nginx/html/
+COPY src/main/docker/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
