@@ -1,10 +1,6 @@
-import { createContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import keycloak from '../../app/keycloak.js';
-
-export const AuthContext = createContext({
-    initialized: false,
-    isAuthenticated: false,
-});
+import { AuthContext } from './authContext.js';
 
 let keycloakInitPromise = null;
 
