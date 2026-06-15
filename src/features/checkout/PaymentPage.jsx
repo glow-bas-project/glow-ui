@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cartApi } from '../../shared/api/apiClients.js';
 import keycloak from '../../app/keycloak.js';
+import { resolveAppPath } from '../../app/runtimeConfig.js';
 import { formatPrice } from '../../shared/utils/formatPrice.js';
 
 function PaymentPage() {
@@ -38,7 +39,7 @@ function PaymentPage() {
 
             // 1. Look up the payment record by stripe payment intent id
             const paymentResponse = await fetch(
-                `/api/payment/payments/stripe/${order.stripePaymentIntentId}`,
+                resolveAppPath(`/api/payment/payments/stripe/${order.stripePaymentIntentId}`),
                 { headers: authHeader }
             );
             if (!paymentResponse.ok) throw new Error('Could not find payment record');
@@ -46,7 +47,7 @@ function PaymentPage() {
 
             // 2. Mark payment as succeeded in our payment-service
             const confirmResponse = await fetch(
-                `/api/payment/payments/${payment.id}/confirm`,
+                resolveAppPath(`/api/payment/payments/${payment.id}/confirm`),
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', ...authHeader },
@@ -55,8 +56,7 @@ function PaymentPage() {
             );
 
             if (restaurantId) {
-                const keycloak = (await import('../../app/keycloak.js')).default;
-                await fetch(`/api/order/${order.id}/notify-restaurant`, {
+                await fetch(resolveAppPath(`/api/order/${order.id}/notify-restaurant`), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
