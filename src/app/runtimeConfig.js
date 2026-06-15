@@ -15,7 +15,18 @@ export function getAppRedirectUri(path = '/') {
     return `${base}${suffix}`;
 }
 
+export function getPathPrefix() {
+    return (getRuntimeConfig().pathPrefix || '').replace(/\/$/, '');
+}
+
 export function getRouterBasename() {
-    const prefix = (getRuntimeConfig().pathPrefix || '').replace(/\/$/, '');
+    const prefix = getPathPrefix();
     return prefix || undefined;
+}
+
+/** Prefix root-absolute paths with Orbit pathPrefix (empty locally). */
+export function resolveAppPath(path) {
+    const prefix = getPathPrefix();
+    const normalized = path.startsWith('/') ? path : `/${path}`;
+    return prefix ? `${prefix}${normalized}` : normalized;
 }
