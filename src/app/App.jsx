@@ -93,58 +93,13 @@ function RestaurantCard({ restaurant, index, onClick }) {
     );
 }
 
-let keycloakInitPromise = null;
-
 function App() {
-    const { initialized, isAuthenticated, setIsAuthenticated, setInitialized } = useAuth();
+    const { initialized, isAuthenticated } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const { restaurants, loading, error } = useRestaurants(searchTerm);
     const { isRestaurantUser, restaurantId } = useRoles();
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        let cancelled = false;
-
-        keycloak.onAuthSuccess = () => {
-            if (!cancelled) {
-                setIsAuthenticated(true);
-            }
-        };
-
-        keycloak.onAuthLogout = () => {
-            if (!cancelled) {
-                setIsAuthenticated(false);
-            }
-        };
-
-        if (!keycloakInitPromise) {
-            keycloakInitPromise = keycloak.init({
-                pkceMethod: 'S256',
-                checkLoginIframe: false,
-            });
-        }
-
-        keycloakInitPromise
-            .then((authenticated) => {
-                if (!cancelled) {
-                    setIsAuthenticated(authenticated);
-                    setInitialized(true);
-                }
-            })
-            .catch(() => {
-                if (!cancelled) {
-                    setInitialized(true);
-                    setIsAuthenticated(Boolean(keycloak.authenticated));
-                }
-            });
-
-        return () => {
-            cancelled = true;
-            keycloak.onAuthSuccess = undefined;
-            keycloak.onAuthLogout = undefined;
-        };
-    }, [setIsAuthenticated, setInitialized]);
 
     useEffect(() => {
         if (!initialized || !isAuthenticated) {
