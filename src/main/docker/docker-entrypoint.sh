@@ -17,4 +17,13 @@ window.__GLOW_CONFIG__ = {
 };
 EOF
 
+if [ -n "$PATH_PREFIX" ]; then
+  # Vite builds use root-absolute paths; prefix them for Orbit (/alt-2026f01/* only).
+  sed -i "s|src=\"/config.js\"|src=\"${PATH_PREFIX}/config.js\"|g" /usr/share/nginx/html/index.html
+  sed -i "s|src=\"config.js\"|src=\"${PATH_PREFIX}/config.js\"|g" /usr/share/nginx/html/index.html
+  sed -i "s|src=\"/assets/|src=\"${PATH_PREFIX}/assets/|g" /usr/share/nginx/html/index.html
+  sed -i "s|href=\"/assets/|href=\"${PATH_PREFIX}/assets/|g" /usr/share/nginx/html/index.html
+  sed -i "s|href=\"/favicon|href=\"${PATH_PREFIX}/favicon|g" /usr/share/nginx/html/index.html
+fi
+
 exec nginx -g 'daemon off;'
