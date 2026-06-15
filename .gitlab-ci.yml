@@ -1,69 +1,7 @@
-image: node:22
+include:
+  - project: backend-architecture-and-scalability/glow-devops
+    file: /.gitlab/ci/entry/ui-pipeline.yml
+    ref: ci/v1.2.0
 
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-stages:
-  - build
-  - test
-  - release
-
-build:
-  stage: build
-  script:
-    - npm ci
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 1 week
-
-lint:
-  stage: test
-  script:
-    - npm ci
-    - npm run lint
-
-push_image:
-  stage: release
-  image: docker:24
-  services:
-    - docker:24-dind
-  resource_group: "${CI_PROJECT_PATH}-image-publish"
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_BUILDKIT: "1"
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-  script:
-    - |
-      set -euo pipefail
-      IMG="${CI_REGISTRY_IMAGE}"
-      SHORT_TAG_SHA="${IMG}:${CI_COMMIT_SHORT_SHA}"
-      LATEST_TAG="${IMG}:latest"
-
-      docker run --privileged --rm tonistiigi/binfmt:qemu-v8.1.5 --install arm64
-      docker buildx create --name glow-ui-builder --driver docker-container --use
-      docker buildx inspect --bootstrap
-
-      docker buildx build -f src/main/docker/Dockerfile.prod \
-        --platform linux/amd64,linux/arm64 \
-        --tag "${SHORT_TAG_SHA}" \
-        --tag "${LATEST_TAG}" \
-        --push \
-        .
-
-      verify_platforms() {
-        local tag="$1"
-        local inspect_output
-        inspect_output="$(docker buildx imagetools inspect "${tag}")"
-        echo "${inspect_output}" | grep -q "linux/amd64"
-        echo "${inspect_output}" | grep -q "linux/arm64"
-      }
-
-      verify_platforms "${SHORT_TAG_SHA}"
-      verify_platforms "${LATEST_TAG}"
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"
+variables:
+  GLOW_DEPLOY_TARGET: ui
