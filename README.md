@@ -1,6 +1,19 @@
-# React + Vite
+# GLOW UI
 
-This is a React + Vite front-end for Glow UI.
+This is the web frontend for the GLOW platform, providing the user-facing interface for interacting with the platform's microservices.
+
+The UI is designed to run alongside the GLOW infrastructure and communicates with backend services through the platform's API gateway.
+
+Built with the following technologies:
+* React
+* Vite
+* JavaScript
+* Tailwind CSS
+* Keycloak / OpenID Connect
+* Axios
+* React Router
+* Playwright
+* Docker
 
 ## Glow UI Setup
 
